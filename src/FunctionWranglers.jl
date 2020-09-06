@@ -19,13 +19,28 @@ end
 
 Base.length(w::FunctionWrangler) = isnothing(w.op) ? 0 : 1 + length(w.next)
 
-function _smap!(outputs, wrangler::FunctionWrangler{TOp, TNext}, myidx, args...) where {TNext, TOp}
+@inline function _smap!(outputs, wrangler::FunctionWrangler{TOp, TNext}, myidx,  p1) where {TNext, TOp}
     if TOp === Nothing
         return nothing
     end
-    outputs[myidx] = wrangler.op(args...)
-    _smap!(outputs, wrangler.next, myidx + 1, args...)
-    return nothing
+    outputs[myidx] = wrangler.op(p1)
+    return _smap!(outputs, wrangler.next, myidx + 1, p1)
+end
+
+@inline function _smap!(outputs, wrangler::FunctionWrangler{TOp, TNext}, myidx,  p1, p2) where {TNext, TOp}
+    if TOp === Nothing
+        return nothing
+    end
+    outputs[myidx] = wrangler.op(p1, p2)
+    return _smap!(outputs, wrangler.next, myidx + 1, p1, p2)
+end
+
+@inline function _smap!(outputs, wrangler::FunctionWrangler{TOp, TNext}, myidx,  p1, p2, p3) where {TNext, TOp}
+    if TOp === Nothing
+        return nothing
+    end
+    outputs[myidx] = wrangler.op(p1, p2, p3)
+    return _smap!(outputs, wrangler.next, myidx + 1, p1, p2, p3)
 end
 
 smap!(outputs, wrangler::FunctionWrangler, args...) = _smap!(outputs, wrangler, 1, args...)
