@@ -6,7 +6,7 @@ os:
   - osx
 julia:
   - 1.2
-  - 1.5
+  - 1.5 # Edit coverage.jl if removed
   - nightly
 notifications:
   email: false
