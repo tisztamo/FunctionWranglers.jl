@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.com/tisztamo/FunctionWranglers.jl.svg?branch=master)](https://travis-ci.com/tisztamo/FunctionWranglers.jl)
 [![codecov.io](http://codecov.io/github/tisztamo/FunctionWranglers.jl/coverage.svg?branch=master)](http://codecov.io/github/tisztamo/FunctionWranglers.jl?branch=master)
 
-This micropackage allows fast, inlined execution of function bodies provided in an array.
+This micropackage allows fast, inlined execution of functions provided in an array.
 
 Currently only the `smap!` operaion is implemented, which maps a value using all the functions into a preallocated array. (s in `smap!` means either static or swapped, as the operation is similar to `map`, but here a single value is mapped with a lot of functions)
 
@@ -16,7 +16,7 @@ Currently only the `smap!` operaion is implemented, which maps a value using all
 
 julia> using FunctionWranglers
 
-julia> create_adder(value) = (x) -> x + value
+julia> create_adder(value) = (x) -> x + value # Up to 3 argument functions are supported for now
 create_adder (generic function with 1 method)
 
 julia> adders = [create_adder(i) for i = 1:5]
@@ -52,4 +52,4 @@ julia> @btime smap!($result, $w, d) setup = (d = rand())
   2.892 ns (0 allocations: 0 bytes)
 ```
 
-Please note that merging the function bodies at the first call have some compilation overhead, which may be significant if the array contains more than a few hundred functions.
+Please note that merging the method bodies at the first call have some compilation overhead, which may be significant if the array contains more than a few dozen functions. Tests run with 200 functions.
