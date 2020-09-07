@@ -27,6 +27,8 @@ Base.length(w::FunctionWrangler) = isnothing(w.op) ? 0 : 1 + length(w.next)
     return _smap!(outputs, wrangler.next, myidx + 1, p1)
 end
 
+# Using variable argument definitions sometimes caused the compiler to "loose track" of type information
+# and generate slow code (tested up to 1.5.1 with https://gist.github.com/tisztamo/1ce6632d7e6ffc45488df26dacff64dd)
 @inline function _smap!(outputs, wrangler::FunctionWrangler{TOp, TNext}, myidx,  p1, p2) where {TNext, TOp}
     if TOp === Nothing
         return nothing
