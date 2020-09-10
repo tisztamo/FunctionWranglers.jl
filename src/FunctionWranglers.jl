@@ -2,7 +2,7 @@ module FunctionWranglers
 
 export FunctionWrangler, smap!
 
-import Base.length
+import Base: length, show
 
 struct FunctionWrangler{TOp, TNext}
     op::TOp
@@ -18,6 +18,16 @@ function FunctionWrangler(fns)
 end
 
 Base.length(w::FunctionWrangler) = isnothing(w.op) ? 0 : 1 + length(w.next)
+
+Base.show(io::IO, ::MIME"text/plain", w::FunctionWrangler) = begin
+    print(io, "FunctionWrangler with $(length(w)) items: ")
+    iw = w
+    while !isnothing(iw.op)
+        print(io, string(iw.op) * ", ")
+        iw = iw.next
+    end
+    return nothing
+end
 
 @inline function _smap!(outputs, wrangler::FunctionWrangler{TOp, TNext}, myidx,  p1) where {TNext, TOp}
     if TOp === Nothing
