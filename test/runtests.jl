@@ -17,7 +17,7 @@ test_data3 = 3000.0
     @test length(w) == TEST_LENGTH
     io = IOBuffer()
     show(io, MIME"text/plain"(), w)
-    @test contains(String(take!(io)), string(TEST_LENGTH))
+    @test occursin(string(TEST_LENGTH), String(take!(io)))
     result = zeros(Float64, length(adders))
     @time smap!(result, w, test_data1) # Time to compile the merged body
     for i = 1:length(adders)
