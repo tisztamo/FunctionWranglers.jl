@@ -1,6 +1,6 @@
 module FunctionWranglers
 
-export FunctionWrangler, smap!, sfindfirst
+export FunctionWrangler, smap!, sfindfirst, sreduce, railway
 
 import Base: length, show
 
@@ -34,7 +34,7 @@ end
 # @generate-ing solves the issue
 @inline @generated function _smap!(outputs, wrangler::FunctionWrangler{TOp, TNext}, myidx, args...) where {TNext, TOp}
     TOp === Nothing && return :(nothing)
-    argnames = [:(args[$i]) for (i, t) in enumerate(args)]
+    argnames = [:(args[$i]) for i = 1:length(args)]
     return quote
         outputs[myidx] = wrangler.op($(argnames...))
         return _smap!(outputs, wrangler.next, myidx + 1, $(argnames...))
@@ -45,7 +45,7 @@ smap!(outputs, wrangler::FunctionWrangler, args...) = _smap!(outputs, wrangler, 
 
 @inline @generated function _sfindfirst(wrangler::FunctionWrangler{TOp, TNext}, myidx, args...) where {TNext, TOp}
     TOp === Nothing && return :(nothing)
-    argnames = [:(args[$i]) for (i, t) in enumerate(args)]
+    argnames = [:(args[$i]) for i = 1:length(args)]
     return quote
         if wrangler.op($(argnames...)) === true
             return myidx
@@ -55,5 +55,30 @@ smap!(outputs, wrangler::FunctionWrangler, args...) = _smap!(outputs, wrangler, 
 end
 
 sfindfirst(wrangler::FunctionWrangler, args...) = _sfindfirst(wrangler, 1, args...)
+
+@inline @generated function _sreduce(wrangler::FunctionWrangler{TOp, TNext}, myidx, prev, args...; init = nothing) where {TNext, TOp}
+    TOp === Nothing && return :(prev)
+    argnames = [:(args[$i]) for i = 1:length(args)]
+    return quote
+        current = wrangler.op(prev, $(argnames...))
+        return _sreduce(wrangler.next, myidx + 1, current, $(argnames...))            
+    end
+end
+
+sreduce(wrangler::FunctionWrangler, args...; init = nothing) = _sreduce(wrangler, 1, init, args...)
+
+@inline @generated function _railway(wrangler::FunctionWrangler{TOp, TNext}, myidx, prev, args...; iserror) where {TNext, TOp}
+    TOp === Nothing && return :(prev)
+    argnames = [:(args[$i]) for i = 1:length(args)]
+    return quote
+        current = wrangler.op(prev, $(argnames...))
+        iserror(current) && return current
+        return _railway(wrangler.next, myidx + 1, current, $(argnames...); iserror)            
+    end
+end
+
+function railway(wrangler::FunctionWrangler, input, args...; iserror = isnothing)
+    return _railway(wrangler, 1, input, args...; iserror)
+end
 
 end # module

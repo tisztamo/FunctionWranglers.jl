@@ -58,3 +58,38 @@ end
     wp3 = FunctionWrangler(predicates)
     @test sfindfirst(wp3) == TEST_LENGTH + 1
 end
+using BenchmarkTools
+
+@testset "sreduce" begin
+    fs = Function[create_adder1(1) for i = 1:TEST_LENGTH]
+    wf1 = FunctionWrangler(fs)
+    @test sreduce(wf1; init = 0) == TEST_LENGTH
+    @test sreduce(wf1; init = 100) == 100 + TEST_LENGTH
+    
+    empty = Function[]
+    wf2 = FunctionWrangler(empty)
+    @test sreduce(wf2; init = 102) == 102
+end
+
+gate(x, threshold; errortype) = x > threshold ? x : errortype()
+creategate(threshold; errortype = Nothing) = (x) -> gate(x, threshold; errortype) 
+
+abstract type Error end
+struct ConcreteError <: Error end
+iserror(x) = x isa Error
+
+@testset "railway" begin
+    gates = Function[creategate(i) for i=1:TEST_LENGTH]
+    fwg = FunctionWrangler(gates)
+    for i = 1:TEST_LENGTH
+        @test isnothing(railway(fwg, i))
+    end
+    @test railway(fwg, TEST_LENGTH + 1) == TEST_LENGTH + 1
+
+    gates2 = Function[creategate(i; errortype = ConcreteError) for i=1:TEST_LENGTH]
+    fwg = FunctionWrangler(gates2)
+    for i = 1:TEST_LENGTH
+        @test iserror(railway(fwg, i; iserror = iserror))
+    end
+    @test railway(fwg, TEST_LENGTH + 1; iserror = iserror) == TEST_LENGTH + 1
+end
