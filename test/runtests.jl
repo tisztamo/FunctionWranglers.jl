@@ -26,8 +26,8 @@ test_data3 = 3000.0
     #@btime smap!($result, $w, d) setup = (d = rand()) # Time to execute the merged fns
 end
 
-@testset "multiple arguments" begin
-    adders2 = [create_adder2(i, 2 * i) for i = 1:200]
+@testset "smap! multiple arguments" begin
+    adders2 = [create_adder2(i, 2 * i) for i = 1:TEST_LENGTH]
     w = FunctionWrangler(adders2)
     result = zeros(Float64, length(adders2))
     smap!(result, w, test_data1, test_data2)
@@ -35,11 +35,26 @@ end
         @test adders2[i](test_data1, test_data2) == result[i]
     end
 
-    adders3 = [create_adder3(i, 2 * i, 3 * i) for i = 1:200]
+    adders3 = [create_adder3(i, 2 * i, 3 * i) for i = 1:TEST_LENGTH]
     w = FunctionWrangler(adders3)
     result = zeros(Float64, length(adders3))
     smap!(result, w, test_data1, test_data2, test_data3)
     for i = 1:length(adders3)
         @test adders3[i](test_data1, test_data2, test_data3) == result[i]
     end
+end
+
+@testset "sfindfirst" begin
+    predicates = Function[() -> false for i=1:TEST_LENGTH]
+    wp1 = FunctionWrangler(predicates)
+    @test isnothing(sfindfirst(wp1)) == true
+
+    push!(predicates, () -> true)
+    wp2 = FunctionWrangler(predicates)
+    @test isnothing(sfindfirst(wp1)) == true
+    @test sfindfirst(wp2) == TEST_LENGTH + 1
+
+    push!(predicates, () -> true)
+    wp3 = FunctionWrangler(predicates)
+    @test sfindfirst(wp3) == TEST_LENGTH + 1
 end

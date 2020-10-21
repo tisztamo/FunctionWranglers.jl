@@ -1,13 +1,13 @@
 module FunctionWranglers
 
-export FunctionWrangler, smap!
+export FunctionWrangler, smap!, sfindfirst
 
 import Base: length, show
 
 struct FunctionWrangler{TOp, TNext}
     op::TOp
     next::TNext
-end # module
+end
 
 function FunctionWrangler(fns)
     if length(fns) == 0
@@ -29,32 +29,31 @@ Base.show(io::IO, ::MIME"text/plain", w::FunctionWrangler) = begin
     return nothing
 end
 
-@inline function _smap!(outputs, wrangler::FunctionWrangler{TOp, TNext}, myidx,  p1) where {TNext, TOp}
-    if TOp === Nothing
-        return nothing
-    end
-    outputs[myidx] = wrangler.op(p1)
-    return _smap!(outputs, wrangler.next, myidx + 1, p1)
-end
-
 # Using variable argument definitions sometimes caused the compiler to "loose track" of type information
-# and generate slow code (tested up to 1.5.1 with https://gist.github.com/tisztamo/1ce6632d7e6ffc45488df26dacff64dd)
-@inline function _smap!(outputs, wrangler::FunctionWrangler{TOp, TNext}, myidx,  p1, p2) where {TNext, TOp}
-    if TOp === Nothing
-        return nothing
+# and generate slow code (tested up to 1.5.1 with https://gist.github.com/tisztamo/1ce6632d7e6ffc4
+# @generate-ing solves the issue
+@inline @generated function _smap!(outputs, wrangler::FunctionWrangler{TOp, TNext}, myidx, args...) where {TNext, TOp}
+    TOp === Nothing && return :(nothing)
+    argnames = [:(args[$i]) for (i, t) in enumerate(args)]
+    return quote
+        outputs[myidx] = wrangler.op($(argnames...))
+        return _smap!(outputs, wrangler.next, myidx + 1, $(argnames...))
     end
-    outputs[myidx] = wrangler.op(p1, p2)
-    return _smap!(outputs, wrangler.next, myidx + 1, p1, p2)
-end
-
-@inline function _smap!(outputs, wrangler::FunctionWrangler{TOp, TNext}, myidx,  p1, p2, p3) where {TNext, TOp}
-    if TOp === Nothing
-        return nothing
-    end
-    outputs[myidx] = wrangler.op(p1, p2, p3)
-    return _smap!(outputs, wrangler.next, myidx + 1, p1, p2, p3)
 end
 
 smap!(outputs, wrangler::FunctionWrangler, args...) = _smap!(outputs, wrangler, 1, args...)
 
+@inline @generated function _sfindfirst(wrangler::FunctionWrangler{TOp, TNext}, myidx, args...) where {TNext, TOp}
+    TOp === Nothing && return :(nothing)
+    argnames = [:(args[$i]) for (i, t) in enumerate(args)]
+    return quote
+        if wrangler.op($(argnames...)) === true
+            return myidx
+        end
+        return _sfindfirst(wrangler.next, myidx + 1, $(argnames...))            
+    end
 end
+
+sfindfirst(wrangler::FunctionWrangler, args...) = _sfindfirst(wrangler, 1, args...)
+
+end # module
