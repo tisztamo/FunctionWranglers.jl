@@ -4,13 +4,21 @@
 [![Build Status](https://travis-ci.com/tisztamo/FunctionWranglers.jl.svg?branch=master)](https://travis-ci.com/tisztamo/FunctionWranglers.jl)
 [![codecov.io](http://codecov.io/github/tisztamo/FunctionWranglers.jl/coverage.svg?branch=master)](http://codecov.io/github/tisztamo/FunctionWranglers.jl?branch=master)
 
-This package allows fast, inlined execution of functions provided in an array.
+This package allows fast, inlined execution of functions provided in an array. It can be used to speed up some calculations directly, or as the base of high-performance programming primitives.
 
-The following operations are supported:
+The following operations are supported currently:
 
-# smap!
+- `smap!` maps a single set of arguments using all the functions into a preallocated array. 
+- `sfindfirst` looks for the first function which return `true` for the given arguments, and returns its index.
+- `sreduce` transforms a single value with the composite of the functions, and also allows you provide extra "context" arguments to the functions
 
-`smap!` maps a value using all the functions into a preallocated array. 
+Please note that merging the method bodies at the first call have some compilation overhead, which may be significant if the array contains more than a few dozen functions. Tests run with 200 functions.
+
+#### smap!
+
+    smap!(outputs, wrangler::FunctionWrangler, args...)
+
+Maps a single set of arguments using all the functions into a preallocated array.
 
 ```julia
   | | |_| | | | (_| |  |  Version 1.5.2 (2020-09-23)
@@ -41,7 +49,7 @@ julia> result = zeros(Float64, length(adders))
  0.0
  0.0
 
-julia> smap!(result, w, 10.0)
+julia> smap!(result, w, 10.0) # If your functions accept more arguments, you can also provide them here
 
 julia> result
 5-element Array{Float64,1}:
@@ -55,4 +63,64 @@ julia> @btime smap!($result, $w, d) setup = (d = rand())
   3.934 ns (0 allocations: 0 bytes)
 ```
 
-Please note that merging the method bodies at the first call have some compilation overhead, which may be significant if the array contains more than a few dozen functions. Tests run with 200 functions.
+
+#### sfindfirst
+
+    sfindfirst(wrangler::FunctionWrangler, args...)
+
+Look for the first function which returns `true` for the given arguments, and return its index. Return `nothing` if no function resulted in `true`.
+
+```
+
+julia> using FunctionWranglers, BenchmarkTools
+
+julia> predicates = Function[(x) -> x < i for i=1:5]
+5-element Array{Function,1}:
+ #1 (generic function with 1 method)
+ #1 (generic function with 1 method)
+ #1 (generic function with 1 method)
+ #1 (generic function with 1 method)
+ #1 (generic function with 1 method)
+
+julia> fw = FunctionWrangler(predicates)
+FunctionWrangler with 5 items: #1, #1, #1, #1, #1, 
+
+julia> sfindfirst(fw, 4)
+5
+
+julia> sfindfirst(fw, 5)
+
+julia> @btime sfindfirst($fw, 4)
+  1.699 ns (0 allocations: 0 bytes)
+5
+```
+
+#### sreduce
+
+    sreduce(wrangler::FunctionWrangler, args...; init = nothing)
+
+Transform a single `init` value with the composite of the functions in `wrangler`.
+
+The functions will be applied in their order in `wrangler`. If you provide extra args, they will be passed to the functions after the current value of the computation:
+
+```
+julia> using FunctionWranglers, BenchmarkTools
+
+julia> pluses = Function[(+) for i = 1:5]
+5-element Array{Function,1}:
+ + (generic function with 184 methods)
+ + (generic function with 184 methods)
+ + (generic function with 184 methods)
+ + (generic function with 184 methods)
+ + (generic function with 184 methods)
+
+julia> fw = FunctionWrangler(pluses)
+FunctionWrangler with 5 items: +, +, +, +, +, 
+
+julia> sreduce(fw, 1; init = 10)
+15
+
+julia> @btime sreduce($fw, 1; init = 10)
+  1.099 ns (0 allocations: 0 bytes)
+15
+```

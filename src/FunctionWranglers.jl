@@ -41,6 +41,11 @@ end
     end
 end
 
+"""
+    smap!(outputs, wrangler::FunctionWrangler, args...)
+
+Map a single set of arguments using all the functions into a preallocated array.
+"""
 smap!(outputs, wrangler::FunctionWrangler, args...) = _smap!(outputs, wrangler, 1, args...)
 
 @inline @generated function _sfindfirst(wrangler::FunctionWrangler{TOp, TNext}, myidx, args...) where {TNext, TOp}
@@ -54,6 +59,12 @@ smap!(outputs, wrangler::FunctionWrangler, args...) = _smap!(outputs, wrangler, 
     end
 end
 
+"""
+    sfindfirst(wrangler::FunctionWrangler, args...)
+
+Look for the first function which returns `true` for the given arguments, and returns its index.
+Return `nothing` if no function returned `true`.
+"""
 sfindfirst(wrangler::FunctionWrangler, args...) = _sfindfirst(wrangler, 1, args...)
 
 @inline @generated function _sreduce(wrangler::FunctionWrangler{TOp, TNext}, myidx, prev, args...; init = nothing) where {TNext, TOp}
