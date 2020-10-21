@@ -1,6 +1,6 @@
 # FunctionWranglers.jl
 
-![Lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg)
+![Lifecycle](https://img.shields.io/badge/lifecycle-maturing-green.svg)
 [![Build Status](https://travis-ci.com/tisztamo/FunctionWranglers.jl.svg?branch=master)](https://travis-ci.com/tisztamo/FunctionWranglers.jl)
 [![codecov.io](http://codecov.io/github/tisztamo/FunctionWranglers.jl/coverage.svg?branch=master)](http://codecov.io/github/tisztamo/FunctionWranglers.jl?branch=master)
 
