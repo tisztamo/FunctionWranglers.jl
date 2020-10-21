@@ -1,6 +1,6 @@
 module FunctionWranglers
 
-export FunctionWrangler, smap!, sfindfirst, sreduce, railway
+export FunctionWrangler, smap!, sfindfirst, sreduce, railway, Fail
 
 import Base: length, show
 
@@ -67,18 +67,17 @@ end
 
 sreduce(wrangler::FunctionWrangler, args...; init = nothing) = _sreduce(wrangler, 1, init, args...)
 
-@inline @generated function _railway(wrangler::FunctionWrangler{TOp, TNext}, myidx, prev, args...; isfail) where {TNext, TOp}
-    TOp === Nothing && return :(prev)
-    argnames = [:(args[$i]) for i = 1:length(args)]
-    return quote
-        current = wrangler.op(prev, $(argnames...))
-        isfail(current) && return current
-        return _railway(wrangler.next, myidx + 1, current, $(argnames...); isfail = isfail)
-    end
+abstract type Fail end
+
+@inline function _railway(wrangler::FunctionWrangler, myidx, prev)
+    isnothing(wrangler.op) && return prev
+    current = wrangler.op(prev)
+    current isa Fail && return current
+    return _railway(wrangler.next, myidx + 1, current)
 end
 
-function railway(wrangler::FunctionWrangler, input, args...; isfail = isnothing)
-    return _railway(wrangler, 1, input, args...; isfail = isfail)
+function railway(wrangler::FunctionWrangler, input)
+    return _railway(wrangler, 1, input)
 end
 
 end # module

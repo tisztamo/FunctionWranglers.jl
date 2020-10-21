@@ -70,24 +70,16 @@ end
     @test sreduce(wf2; init = 102) == 102
 end
 
-gate(x, threshold; failtype) = x > threshold ? x : failtype()
-creategate(threshold; failtype = Nothing) = (x) -> gate(x, threshold; failtype = failtype) 
+@inline gate(x, threshold) = x > threshold ? x : ConcreteFail()
+creategate(threshold; failtype = Nothing) = @inline (x) -> gate(x, threshold) 
 
-abstract type Fail end
 struct ConcreteFail <: Fail end
-isfail(x) = x isa Fail
 
 @testset "railway" begin
-    gates = Function[creategate(i) for i=1:TEST_LENGTH]
-    fwg = FunctionWrangler(gates)
+    gates2 = Function[x -> 1.0 * x, x ->Int(x), [creategate(i; failtype=ConcreteFail) for i=1:TEST_LENGTH]..., x -> 1.0 * x]
+    fwg2 = FunctionWrangler(gates2)
     for i = 1:TEST_LENGTH
-        @test isnothing(railway(fwg, i))
+        @test railway(fwg2, i) isa Fail
     end
-    @test railway(fwg, TEST_LENGTH + 1) == TEST_LENGTH + 1
-    gates2 = Function[creategate(i; failtype = ConcreteFail) for i=1:TEST_LENGTH]
-    fwg = FunctionWrangler(gates2)
-    for i = 1:TEST_LENGTH
-        @test isfail(railway(fwg, i; isfail = isfail))
-    end
-    @test railway(fwg, TEST_LENGTH + 1; isfail = isfail) == TEST_LENGTH + 1
+    @test railway(fwg2, TEST_LENGTH + 1) === TEST_LENGTH + 1.0
 end
