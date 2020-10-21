@@ -71,12 +71,12 @@ end
 end
 
 @inline gate(x, threshold) = x > threshold ? x : ConcreteFail()
-creategate(threshold; failtype = Nothing) = @inline (x) -> gate(x, threshold) 
+creategate(threshold) = (x) -> gate(x, threshold) 
 
 struct ConcreteFail <: Fail end
 
 @testset "railway" begin
-    gates2 = Function[x -> 1.0 * x, x ->Int(x), [creategate(i; failtype=ConcreteFail) for i=1:TEST_LENGTH]..., x -> 1.0 * x]
+    gates2 = Function[x -> 1.0 * x, x ->Int(x), [creategate(i) for i=1:TEST_LENGTH]..., x -> 1.0 * x]
     fwg2 = FunctionWrangler(gates2)
     for i = 1:TEST_LENGTH
         @test railway(fwg2, i) isa Fail
