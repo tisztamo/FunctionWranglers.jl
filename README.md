@@ -4,31 +4,34 @@
 [![Build Status](https://travis-ci.com/tisztamo/FunctionWranglers.jl.svg?branch=master)](https://travis-ci.com/tisztamo/FunctionWranglers.jl)
 [![codecov.io](http://codecov.io/github/tisztamo/FunctionWranglers.jl/coverage.svg?branch=master)](http://codecov.io/github/tisztamo/FunctionWranglers.jl?branch=master)
 
-This micropackage allows fast, inlined execution of functions provided in an array.
+This package allows fast, inlined execution of functions provided in an array.
 
-Currently only the `smap!` operaion is implemented, which maps a value using all the functions into a preallocated array. (s in `smap!` means either static or swapped, as the operation is similar to `map`, but here a single value is mapped with a lot of functions)
+The following operations are supported:
+
+# smap!
+
+`smap!` maps a value using all the functions into a preallocated array. 
 
 ```julia
-  | | | | | | |/ _` |  |
-  | | |_| | | | (_| |  |  Version 1.5.1 (2020-08-25)
+  | | |_| | | | (_| |  |  Version 1.5.2 (2020-09-23)
  _/ |\__'_|_|_|\__'_|  |  Official https://julialang.org/ release
-|__/                   |
+|__/ 
 
 julia> using FunctionWranglers
 
-julia> create_adder(value) = (x) -> x + value # Up to 3 argument functions are supported for now
+julia> create_adder(value) = (x) -> x + value
 create_adder (generic function with 1 method)
 
-julia> adders = [create_adder(i) for i = 1:5]
-5-element Array{var"#1#2"{Int64},1}:
- #1 (generic function with 1 method)
- #1 (generic function with 1 method)
- #1 (generic function with 1 method)
- #1 (generic function with 1 method)
- #1 (generic function with 1 method)
+julia> adders = Function[create_adder(i) for i = 1:5]
+5-element Array{Function,1}:
+ #3 (generic function with 1 method)
+ #3 (generic function with 1 method)
+ #3 (generic function with 1 method)
+ #3 (generic function with 1 method)
+ #3 (generic function with 1 method)
 
 julia> w = FunctionWrangler(adders)
-FunctionWrangler{var"#1#2"{Int64},FunctionWrangler{var"#1#2"{Int64},FunctionWrangler{var"#1#2"{Int64},FunctionWrangler{var"#1#2"{Int64},FunctionWrangler{var"#1#2"{Int64},FunctionWrangler{Nothing,Nothing}}}}}}(var"#1#2"{Int64}(1), FunctionWrangler{var"#1#2"{Int64},FunctionWrangler{var"#1#2"{Int64},FunctionWrangler{var"#1#2"{Int64},FunctionWrangler{var"#1#2"{Int64},FunctionWrangler{Nothing,Nothing}}}}}(var"#1#2"{Int64}(2), FunctionWrangler{var"#1#2"{Int64},FunctionWrangler{var"#1#2"{Int64},FunctionWrangler{var"#1#2"{Int64},FunctionWrangler{Nothing,Nothing}}}}(var"#1#2"{Int64}(3), FunctionWrangler{var"#1#2"{Int64},FunctionWrangler{var"#1#2"{Int64},FunctionWrangler{Nothing,Nothing}}}(var"#1#2"{Int64}(4), FunctionWrangler{var"#1#2"{Int64},FunctionWrangler{Nothing,Nothing}}(var"#1#2"{Int64}(5), FunctionWrangler{Nothing,Nothing}(nothing, nothing))))))
+FunctionWrangler with 5 items: #3, #3, #3, #3, #3, 
 
 julia> result = zeros(Float64, length(adders))
 5-element Array{Float64,1}:
@@ -49,7 +52,7 @@ julia> result
  15.0
 
 julia> @btime smap!($result, $w, d) setup = (d = rand())
-  2.892 ns (0 allocations: 0 bytes)
+  3.934 ns (0 allocations: 0 bytes)
 ```
 
 Please note that merging the method bodies at the first call have some compilation overhead, which may be significant if the array contains more than a few dozen functions. Tests run with 200 functions.

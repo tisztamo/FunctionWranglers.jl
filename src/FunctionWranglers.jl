@@ -67,18 +67,18 @@ end
 
 sreduce(wrangler::FunctionWrangler, args...; init = nothing) = _sreduce(wrangler, 1, init, args...)
 
-@inline @generated function _railway(wrangler::FunctionWrangler{TOp, TNext}, myidx, prev, args...; iserror) where {TNext, TOp}
+@inline @generated function _railway(wrangler::FunctionWrangler{TOp, TNext}, myidx, prev, args...; isfail) where {TNext, TOp}
     TOp === Nothing && return :(prev)
     argnames = [:(args[$i]) for i = 1:length(args)]
     return quote
         current = wrangler.op(prev, $(argnames...))
-        iserror(current) && return current
-        return _railway(wrangler.next, myidx + 1, current, $(argnames...); iserror)            
+        isfail(current) && return current
+        return _railway(wrangler.next, myidx + 1, current, $(argnames...); isfail = isfail)
     end
 end
 
-function railway(wrangler::FunctionWrangler, input, args...; iserror = isnothing)
-    return _railway(wrangler, 1, input, args...; iserror)
+function railway(wrangler::FunctionWrangler, input, args...; isfail = isnothing)
+    return _railway(wrangler, 1, input, args...; isfail = isfail)
 end
 
 end # module

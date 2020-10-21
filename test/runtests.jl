@@ -58,7 +58,6 @@ end
     wp3 = FunctionWrangler(predicates)
     @test sfindfirst(wp3) == TEST_LENGTH + 1
 end
-using BenchmarkTools
 
 @testset "sreduce" begin
     fs = Function[create_adder1(1) for i = 1:TEST_LENGTH]
@@ -71,12 +70,12 @@ using BenchmarkTools
     @test sreduce(wf2; init = 102) == 102
 end
 
-gate(x, threshold; errortype) = x > threshold ? x : errortype()
-creategate(threshold; errortype = Nothing) = (x) -> gate(x, threshold; errortype) 
+gate(x, threshold; failtype) = x > threshold ? x : failtype()
+creategate(threshold; failtype = Nothing) = (x) -> gate(x, threshold; failtype = failtype) 
 
-abstract type Error end
-struct ConcreteError <: Error end
-iserror(x) = x isa Error
+abstract type Fail end
+struct ConcreteFail <: Fail end
+isfail(x) = x isa Fail
 
 @testset "railway" begin
     gates = Function[creategate(i) for i=1:TEST_LENGTH]
@@ -85,11 +84,10 @@ iserror(x) = x isa Error
         @test isnothing(railway(fwg, i))
     end
     @test railway(fwg, TEST_LENGTH + 1) == TEST_LENGTH + 1
-
-    gates2 = Function[creategate(i; errortype = ConcreteError) for i=1:TEST_LENGTH]
+    gates2 = Function[creategate(i; failtype = ConcreteFail) for i=1:TEST_LENGTH]
     fwg = FunctionWrangler(gates2)
     for i = 1:TEST_LENGTH
-        @test iserror(railway(fwg, i; iserror = iserror))
+        @test isfail(railway(fwg, i; isfail = isfail))
     end
-    @test railway(fwg, TEST_LENGTH + 1; iserror = iserror) == TEST_LENGTH + 1
+    @test railway(fwg, TEST_LENGTH + 1; isfail = isfail) == TEST_LENGTH + 1
 end
