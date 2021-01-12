@@ -9,8 +9,8 @@ This package allows fast, inlined execution of functions provided in an array. I
 The following operations are supported currently:
 
 - `smap!` maps a single set of arguments using all the functions into a preallocated array. 
-- `sfindfirst` looks for the first function which return `true` for the given arguments, and returns its index.
-- `sreduce` transforms a single value with the composite of the functions, and also allows you provide extra "context" arguments to the functions
+- `sfindfirst` looks for the first function which returns `true` for the given arguments, and returns its index.
+- `sreduce` transforms a single value with the composite of the functions, and also allows providing extra "context" arguments to the functions
 
 Please note that merging the method bodies at the first call have some compilation overhead, which may be significant if the array contains more than a few dozen functions. Tests run with 200 functions.
 
@@ -18,7 +18,7 @@ Please note that merging the method bodies at the first call have some compilati
 
     smap!(outputs, wrangler::FunctionWrangler, args...)
 
-Maps a single set of arguments using all the functions into a preallocated array.
+Map a single set of arguments using all the functions into a preallocated array.
 
 ```julia
   | | |_| | | | (_| |  |  Version 1.5.2 (2020-09-23)
