@@ -3,7 +3,7 @@ using Test
 
 const TEST_LENGTH = 200
 
-create_adder1(a) = (x) -> x + a
+create_adder1(a) = x -> x + a
 create_adder2(a1, a2) = (x, y) -> x + a1 + y + a2
 create_adder3(a1, a2, a3) = (x, y, z) -> x + a1 + y + a2 + z + a3
 
@@ -12,7 +12,7 @@ test_data2 = 2000.0
 test_data3 = 3000.0
 
 @testset "basics" begin
-    adders = [create_adder1(i) for i = 1:TEST_LENGTH]
+    adders = Function[create_adder1(i) for i = 1:TEST_LENGTH]
     @time w = FunctionWrangler(adders) # Time to create the nested list of types
     @test length(w) == TEST_LENGTH
     io = IOBuffer()
@@ -57,6 +57,14 @@ end
     push!(predicates, () -> true)
     wp3 = FunctionWrangler(predicates)
     @test sfindfirst(wp3) == TEST_LENGTH + 1
+end
+
+@testset "sindex" begin
+    fns = Function[create_adder1(1), create_adder2(2, 3), create_adder3(4, 5, 6)]
+    w = FunctionWrangler(fns)
+    @test sindex(w, 1, 10) == 11
+    @test sindex(w, 2, 10, 20) == 10 + 2 + 20 + 3
+    @test sindex(w, 3, 10, 20, 30) == 10 + 4 + 20 + 5 + 30 + 6
 end
 
 @testset "sreduce" begin

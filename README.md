@@ -95,6 +95,47 @@ julia> @btime sfindfirst($fw, 4)
 5
 ```
 
+
+#### sindex
+
+    sindex(wrangler::FunctionWrangler, idx, args...)
+
+Call the `idx`-th function with args.
+
+```julia
+julia> adders = Function[create_adder(i) for i = 1:50]
+50-element Vector{Function}:
+ #1 (generic function with 1 method)
+ ⋮
+ #1 (generic function with 1 method)
+ 
+julia> w = FunctionWrangler(adders)
+FunctionWrangler with 50 items: #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, #1, 
+
+julia> sindex(w, 3, 10)
+13
+
+julia> sindex(w, 30, 10)
+40
+```
+Note that this call iterates the wrangler from 1 to `idx`. Try to
+put the frequently called functions at the beginning to minimize overhead:
+
+```julia
+julia> @btime sindex($w, i, i) setup=(i=rand(1:10))
+  2.230 ns (0 allocations: 0 bytes)
+18
+
+julia> @btime sindex($w, i, i) setup=(i=rand(20:30))
+  4.210 ns (0 allocations: 0 bytes)
+42
+
+julia> @btime sindex($w, i, i) setup=(i=rand(40:50))
+  10.570 ns (0 allocations: 0 bytes)
+82
+```
+
+
 #### sreduce
 
     sreduce(wrangler::FunctionWrangler, args...; init = nothing)

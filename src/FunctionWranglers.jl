@@ -1,6 +1,6 @@
 module FunctionWranglers
 
-export FunctionWrangler, smap!, sfindfirst, sreduce, railway, Fail
+export FunctionWrangler, smap!, sfindfirst, sreduce, sindex, railway, Fail
 
 import Base: length, show
 
@@ -66,6 +66,30 @@ Look for the first function which returns `true` for the given arguments, and re
 Return `nothing` if no function returned `true`.
 """
 sfindfirst(wrangler::FunctionWrangler, args...) = _sfindfirst(wrangler, 1, args...)
+
+@inline @generated function _sindex(wrangler::FunctionWrangler{TOp, TNext}, idx, myidx, args...) where {TNext, TOp}
+    TOp === Nothing && return :(nothing)
+    argnames = [:(args[$i]) for i = 1:length(args)]
+    return quote
+        if idx == myidx
+            return wrangler.op($(argnames...)) 
+        end
+        return _sindex(wrangler.next, idx, myidx + 1, $(argnames...))
+    end
+end
+
+"""
+    sindex(wrangler::FunctionWrangler, idx, args...)
+
+Call the `idx`-th function with args.
+
+Note that this call iterates the wrangler from 1 to `idx`. Try to
+put the frequently called functions at the beginning to minimize overhead.
+"""
+function sindex(wrangler::FunctionWrangler, idx, args...) 
+    @assert idx <= length(wrangler)
+    _sindex(wrangler, idx, 1, args...)
+end
 
 @inline @generated function _sreduce(wrangler::FunctionWrangler{TOp, TNext}, myidx, prev, args...; init = nothing) where {TNext, TOp}
     TOp === Nothing && return :(prev)
