@@ -10,6 +10,7 @@ The following operations are supported currently:
 
 - `smap!` maps a single set of arguments using all the functions into a preallocated array. 
 - `sfindfirst` looks for the first function which returns `true` for the given arguments, and returns its index.
+- `sindex` select and call a function from the wrangler. This is not constant time, but for small indexes faster than indexing to the original array directly.
 - `sreduce` transforms a single value with the composite of the functions, and also allows providing extra "context" arguments to the functions
 
 Please note that merging the method bodies at the first call have some compilation overhead, which may be significant if the array contains more than a few dozen functions. Tests run with 200 functions.
