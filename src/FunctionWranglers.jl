@@ -67,14 +67,14 @@ Return `nothing` if no function returned `true`.
 """
 sfindfirst(wrangler::FunctionWrangler, args...) = _sfindfirst(wrangler, 1, args...)
 
-@inline @generated function _sindex(wrangler::FunctionWrangler{TOp, TNext}, idx, myidx, args...) where {TNext, TOp}
+@inline @generated function _sindex(wrangler::FunctionWrangler{TOp, TNext}, idx, args...) where {TNext, TOp}
     TOp === Nothing && return :(nothing)
     argnames = [:(args[$i]) for i = 1:length(args)]
     return quote
-        if idx == myidx
+        if idx == 1
             return wrangler.op($(argnames...)) 
         end
-        return _sindex(wrangler.next, idx, myidx + 1, $(argnames...))
+        return _sindex(wrangler.next, idx - 1, $(argnames...))
     end
 end
 
@@ -88,7 +88,7 @@ put the frequently called functions at the beginning to minimize overhead.
 """
 function sindex(wrangler::FunctionWrangler, idx, args...) 
     @assert idx <= length(wrangler)
-    _sindex(wrangler, idx, 1, args...)
+    _sindex(wrangler, idx, args...)
 end
 
 @inline @generated function _sreduce(wrangler::FunctionWrangler{TOp, TNext}, myidx, prev, args...; init = nothing) where {TNext, TOp}
