@@ -124,11 +124,15 @@ put the frequently called functions at the beginning to minimize overhead:
 
 ```julia
 julia> @btime sindex($w, i, i) setup=(i=rand(1:10))
-  2.473 ns (0 allocations: 0 bytes)
+  2.228 ns (0 allocations: 0 bytes)
 8
 
+julia> @btime sindex($w, i, i) setup=(i=rand(20:30))
+  3.454 ns (0 allocations: 0 bytes)
+60
+
 julia> @btime sindex($w, i, i) setup=(i=rand(40:50))
-  3.452 ns (0 allocations: 0 bytes)
+  3.695 ns (0 allocations: 0 bytes)
 88
 ```
 
