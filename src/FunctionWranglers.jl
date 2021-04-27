@@ -68,7 +68,6 @@ Return `nothing` if no function returned `true`.
 sfindfirst(wrangler::FunctionWrangler, args...) = _sfindfirst(wrangler, 1, args...)
 
 @inline @generated function _sindex(wrangler::FunctionWrangler{TOp, TNext}, idx, args...) where {TNext, TOp}
-    TOp === Nothing && return :(nothing)
     argnames = [:(args[$i]) for i = 1:length(args)]
     return quote
         if idx == 1
@@ -86,8 +85,7 @@ Call the `idx`-th function with args.
 Note that this call iterates the wrangler from 1 to `idx`. Try to
 put the frequently called functions at the beginning to minimize overhead.
 """
-function sindex(wrangler::FunctionWrangler, idx, args...) 
-    @assert idx <= length(wrangler)
+function sindex(wrangler::FunctionWrangler, idx, args...)
     _sindex(wrangler, idx, args...)
 end
 
