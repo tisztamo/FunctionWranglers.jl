@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.com/tisztamo/FunctionWranglers.jl.svg?branch=master)](https://travis-ci.com/tisztamo/FunctionWranglers.jl)
 [![codecov.io](http://codecov.io/github/tisztamo/FunctionWranglers.jl/coverage.svg?branch=master)](http://codecov.io/github/tisztamo/FunctionWranglers.jl?branch=master)
 
-This package allows fast, inlined execution of functions provided in an array. It can be used to speed up dispatch-heavy calculations directly, or as a building block for high-performance programming primitives.
+This package allows fast, inlined execution of functions provided in an array. It can be used to speed up dispatch-heavy calculations directly, or as a building block for developing high-performance programming primitives.
 
 The following operations are supported currently:
 
