@@ -4,16 +4,18 @@
 [![Build Status](https://travis-ci.com/tisztamo/FunctionWranglers.jl.svg?branch=master)](https://travis-ci.com/tisztamo/FunctionWranglers.jl)
 [![codecov.io](http://codecov.io/github/tisztamo/FunctionWranglers.jl/coverage.svg?branch=master)](http://codecov.io/github/tisztamo/FunctionWranglers.jl?branch=master)
 
-This package allows fast, inlined execution of functions provided in an array. It can be used to speed up some calculations directly, or as the base of high-performance programming primitives.
+This package allows fast, inlined execution of functions provided in an array. It can be used to speed up dispatch-heavy calculations directly, or as a building block for high-performance programming primitives.
 
 The following operations are supported currently:
 
 - `smap!` maps a single set of arguments using all the functions into a preallocated array. 
 - `sfindfirst` looks for the first function which returns `true` for the given arguments, and returns its index.
-- `sindex` select and call a function from the wrangler. This is not constant time, but for small indexes faster than indexing to the original array directly.
+- `sindex` selects and calls a function from the wrangler. This is not constant time, but for small indexes faster than indexing to the original array directly.
 - `sreduce` transforms a single value with the composite of the functions, and also allows providing extra "context" arguments to the functions
 
 Please note that merging the method bodies at the first call have some compilation overhead, which may be significant if the array contains more than a few dozen functions. Tests run with 200 functions.
+
+## Reference
 
 #### smap!
 
